@@ -1,21 +1,18 @@
 from django.shortcuts import render
+from .models import Asset
 
 def home(request):
-    fake_database = [
-    {'id': 1, 'name': 'Sci-Fi Helmet', 'file_size': '15 MB'},
-    {'id': 2, 'name': 'Old Chair', 'file_size': '2 MB'},
-    {'id': 3, 'name': 'Cyber Truck', 'file_size': '10 MB'},
-    ]
+    assets = Asset.objects.all()
+
     context_data = {
-    'page_title': 'Главная Галерея',
-    'assets': fake_database, # Передаем весь список
-    'models_count': 3,
+        'page_title': 'Главная Галерея',
+        'assets': assets,
     }
     return render(request, 'gallery/index.html', context_data)
 
 def about(request):
-    context_data = {
+    context = {
         'page_title': 'Данил',
         'about_text': 'МЮ Лучший',
     }
-    return render(request, 'gallery/about.html', context_data)
+    return render(request, 'gallery/about.html', context)
