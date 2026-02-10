@@ -1,52 +1,57 @@
+{% load static %}
 <!doctype html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <title>3D Storage</title>
+    <link rel="stylesheet" href="{% static 'gallery/style.css' %}" />
   </head>
   <body>
     <header>
-      <!-- {{ ... }} — это переменная. Мы передадим её из Python -->
       <h1>{{ page_title }}</h1>
+      <!-- Ссылка на загрузку теперь выглядит как кнопка -->
+      <a href="{% url 'upload' %}" class="btn" style="background-color: #28a745"
+        >+ Загрузить модель</a
+      >
     </header>
     <main>
-      <p>Добро пожаловать в систему хранения.</p>
-      <hr />
-      <!-- Проверка условия -->
-      {% if models_count > 0 %}
-      <p>Сейчас в базе: <b>{{ models_count }}</b> моделей.</p>
-      {% else %}
-      <p>База пуста. Загрузите что-нибудь!</p>
-      {% endif %}
-    </main>
-    <main>
-      <h2>Доступные ассеты:</h2>
-      <!-- Цикл for в шаблоне Django -->
-      <ul>
+      <!-- Контейнер сетки -->
+      <div class="gallery-grid">
         {% for asset in assets %}
-        <li>
-          <strong>{{ asset.title }}</strong>
-          <small>(Размер: {{ asset.file_size|filesizeformat }})</small>
+        <!-- Карточка -->
+        <div class="asset-card">
+          <div
+            class="card-preview"
+            id="model-container-{{ asset.id }}"
+            data-url="{{ asset.file.url }}"
+          >
+            ⌛
+          </div>
+          <!-- 2. Информация (Нижняя часть) -->
+          <div class="card-info">
+            <h3 class="card-title">{{ asset.title }}</h3>
 
-          <a href="{{ asset.file.url }}" download>[Скачать файл]</a>
-        </li>
+            <div class="card-meta">
+              <span> 📅 {{ asset.created_at|date:"d M Y" }}</span>
+              <!-- Если есть файл, показываем размер -->
+              {% if asset.file %}
+              <span style="float: right">
+                💾 {{ asset.file.size|filesizeformat }}</span
+              >
+              {% endif %}
+            </div>
+            <!-- Кнопка скачивания -->
+            {% if asset.file %}
+            <a href="{{ asset.file.url }}" class="btn" download>Скачать .glb</a>
+            {% else %}
+            <span style="color: red">Файл потерян</span>
+            {% endif %}
+          </div>
+        </div>
         {% empty %}
-        <!-- Этот блок сработает, если список assets пустой -->
-        <li>Нет доступных моделей.</li>
+        <p>База пуста.</p>
         {% endfor %}
-      </ul>
-
-      {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}
-        <li class="{{ message.tags }}">{{ message }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
+      </div>
     </main>
-    <a href="{% url 'upload' %}">Загрузить модель</a>
-    <footer>
-      <p>&copy; 2026 Web Structures Course PEPE Sheyna FA FA</p>
-    </footer>
   </body>
 </html>
