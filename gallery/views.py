@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.db.models import Q
+from django.core.paginator import Paginator
 
 import base64
 from django.core.files.base import ContentFile
@@ -9,12 +11,35 @@ from .forms import AssetForm
 
 
 def home(request):
-    assets = Asset.objects.all().order_by('-created_at')
-
+    # 1. Получаем параметры из URL (GET-запроса)
+    # Если параметра нет, вернет None (или пустую строку, если мы так настроили)
+    search_query = request.GET.get('q', '')
+    ordering = request.GET.get('ordering', 'new') # По умолчанию 'new'
+    # 2. Базовый запрос: Берем ВСЕ
+    assets = Asset.objects.all()
+    # 3. Применяем поиск (если пользователь что-то ввел)
+    if search_query:
+        assets = assets.filter(title__icontains=search_query)
+    # 4. Применяем сортировку
+    if ordering == 'old':
+        assets = assets.order_by('created_at') # От старых к новым
+    elif ordering == 'name':
+        assets = assets.order_by('title')      # По алфавиту
+    else:
+        # По умолчанию (new) - свежие сверху
+        assets = assets.order_by('-created_at')
+    # Режем список по 8 штук на страницу (для теста, чтобы быстрее увидеть кнопки)
+    paginator = Paginator(assets, 8) 
+    # Получаем номер страницы из URL (например, ?page=2)
+    page_number = request.GET.get('page')
+    # Получаем конкретный кусочек данных (объект Page)
+    page_obj = paginator.get_page(page_number)
+    # 5. Отдаем результат
     context_data = {
         'page_title': 'Главная Галерея',
-        'assets': assets,
+        'page_obj': page_obj,
     }
+
     return render(request, 'gallery/index.html', context_data)
 
 def about(request):
@@ -51,6 +76,8 @@ def upload(request):
                 new_asset.image.save(file_name, ContentFile(data), save=False)
             # 3. Финальное сохранение в БД
             new_asset.save()
+
+            messages.success(request, f'Модель "{new_asset.title}" успешно загружена!')
             
             return redirect('home')
     else:

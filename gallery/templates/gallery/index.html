@@ -17,6 +17,15 @@
     <link rel="stylesheet" href="{% static 'gallery/style.css' %}" />
   </head>
   <body>
+    {% if messages %}
+    <div class="messages-container">
+      {% for message in messages %}
+      <!-- message.tags добавит класс 'success', 'error' или 'warning' -->
+      <div class="alert {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     <header>
       <h1>{{ page_title }}</h1>
       <!-- Ссылка на загрузку теперь выглядит как кнопка -->
@@ -24,10 +33,81 @@
         >+ Загрузить модель</a
       >
     </header>
+
+    <!-- Блок поиска и фильтров -->
+    <div class="toolbar">
+      <form
+        action="{% url 'home' %}"
+        method="get"
+        style="display: flex; width: 100%; gap: 10px; align-items: center"
+      >
+        <!-- 1. Поле поиска -->
+        <!-- value="{{ request.GET.q }}" - это Sticky UI. Мы оставляем текст в поле после перезагрузки страницы -->
+        <input
+          type="text"
+          name="q"
+          class="search-input"
+          placeholder="Найти 3D модель..."
+          value="{{ request.GET.q|default:'' }}"
+        />
+
+        <!-- 2. Сортировка -->
+        <!-- onchange="this.form.submit()" заставляет форму отправиться сразу при выборе из списка -->
+        <select
+          name="ordering"
+          class="sort-select"
+          onchange="this.form.submit()"
+        >
+          <option
+            value="new"
+            {%
+            if
+            request.GET.ordering=""
+            ="new"
+            %}selected{%
+            endif
+            %}
+          >
+            Сначала новые
+          </option>
+          <option
+            value="old"
+            {%
+            if
+            request.GET.ordering=""
+            ="old"
+            %}selected{%
+            endif
+            %}
+          >
+            Сначала старые
+          </option>
+          <option
+            value="name"
+            {%
+            if
+            request.GET.ordering=""
+            ="name"
+            %}selected{%
+            endif
+            %}
+          >
+            По имени (А-Я)
+          </option>
+        </select>
+        <!-- 3. Кнопка -->
+        <button type="submit" class="search-btn">Найти</button>
+        <!-- 4. Кнопка сброса (если поиск активен) -->
+        {% if request.GET.q or request.GET.ordering %}
+        <a href="{% url 'home' %}" class="reset-link">✖ Сбросить</a>
+        {% endif %}
+      </form>
+    </div>
+
     <main>
       <!-- Контейнер сетки -->
       <div class="gallery-grid">
-        {% for asset in assets %}
+        {% for asset in page_obj %}
         <!-- Карточка -->
         <div class="asset-card">
           <div
@@ -74,8 +154,48 @@
           </div>
         </div>
         {% empty %}
-        <p>База пуста.</p>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px">
+          {% if request.GET.q %}
+          <!-- Если был поиск -->
+          <h3>По запросу "<b>{{ request.GET.q }}</b>" ничего не найдено</h3>
+          <p>
+            Попробуйте изменить запрос или<a href="{% url 'home' %}"
+              >сбросить фильтры</a
+            >.
+          </p>
+          {% else %}
+          <!-- Если база реально пуста -->
+          <h3>База пуста</h3>
+          <p>Загрузите первую модель!</p>
+          {% endif %}
+        </div>
         {% endfor %}
+      </div>
+      {% load gallery_extras %}
+      <!-- 3. Блок Пагинации -->
+      <div class="pagination">
+        <span class="step-links">
+          {% if page_obj.has_previous %}
+          <!-- Используем наш тег: берем текущий request и меняем page на 1 -->
+          <a href="?{% param_replace request page=1 %}">&laquo; Первая</a>
+          <a
+            href="?{% param_replace request page=page_obj.previous_page_number %}"
+            >Назад</a
+          >
+          {% endif %}
+          <span class="current">
+            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+          </span>
+          {% if page_obj.has_next %}
+          <a href="?{% param_replace request page=page_obj.next_page_number %}"
+            >Далее</a
+          >
+          <a
+            href="?{% param_replace request page=page_obj.paginator.num_pages %}"
+            >Последняя &raquo;</a
+          >
+          {% endif %}
+        </span>
       </div>
     </main>
 
