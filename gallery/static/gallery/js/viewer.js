@@ -8,7 +8,7 @@ export function loadModel(containerId, modelUrl) {
   if (!container) return;
   // 1. Сцена
   const scene = new THREE.Scene();
-  scene.background = null; // Светло-серый фон
+  //scene.background = null; // Светло-серый фон
   // 2. Камера
   const camera = new THREE.PerspectiveCamera(
     45,
@@ -50,6 +50,7 @@ export function loadModel(containerId, modelUrl) {
   container.appendChild(loaderDiv);
   // Находим полоску, чтобы менять её ширину
   const progressFill = loaderDiv.querySelector(".progress-fill");
+  container.style.backgroundImage = "none";
   // --- 2. Обновляем вызов загрузчика --
   const loader = new GLTFLoader();
   loader.load(
