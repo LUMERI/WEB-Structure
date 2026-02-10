@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Загрузка модели</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 01rem;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      button {
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Загрузите новую 3D-Модель</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-group">{{ form.as_p }}</div>
+
+      <button type="submit">Загрузить в Базу</button>
+    </form>
+
+    <br />
+    <a href="{% url 'home' %}">Назад в Галерею</a>
+  </body>
+</html>

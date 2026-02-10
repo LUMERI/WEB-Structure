@@ -35,8 +35,16 @@
         <li>Нет доступных моделей.</li>
         {% endfor %}
       </ul>
+
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </main>
-    <a href="/about/">О нас</a>
+    <a href="{% url 'upload' %}">Загрузить модель</a>
     <footer>
       <p>&copy; 2026 Web Structures Course PEPE Sheyna FA FA</p>
     </footer>
