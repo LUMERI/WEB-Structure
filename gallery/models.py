@@ -5,6 +5,7 @@ class Asset(models.Model):
     title = models.CharField(max_length=200, verbose_name="Название модели")
     # Поле для файла. upload_to указывает подпапку, куда сохранять файлы.
     # Внимание: Файл не ложится в базу! В базе лежит путь "3d_assets/имя_файла.glb"
+    image = models.ImageField(upload_to='thumbnails/', blank=True, null=True, verbose_name="Превью")
     file = models.FileField(upload_to='3d_assets/', verbose_name="3D Файл")
     # Дата создания. auto_now_add=True ставит время автоматически в момент создания.
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
