@@ -1,9 +1,19 @@
-{% load static %}
 <!doctype html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <title>3D Storage</title>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    {% load static %}
     <link rel="stylesheet" href="{% static 'gallery/style.css' %}" />
   </head>
   <body>
@@ -53,5 +63,22 @@
         {% endfor %}
       </div>
     </main>
+
+    <script type="module">
+      // Импортируем нашу функцию.
+      // Обратите внимание: путь к JS через static
+      import { mountSimpleCube } from "{% static 'gallery/js/viewer.js' %}";
+      // Находим все контейнеры карточек
+      const containers = document.querySelectorAll(".card-preview");
+      if (containers.length > 0) {
+        // Берем только первый контейнер для теста
+        const firstContainer = containers[0];
+
+        const containerId = firstContainer.id;
+
+        mountSimpleCube(containerId);
+      }
+      // Запускаем магию
+    </script>
   </body>
 </html>
