@@ -67,17 +67,19 @@
     <script type="module">
       // Импортируем нашу функцию.
       // Обратите внимание: путь к JS через static
-      import { mountSimpleCube } from "{% static 'gallery/js/viewer.js' %}";
+      import { loadModel } from "{% static 'gallery/js/viewer.js' %}";
       // Находим все контейнеры карточек
       const containers = document.querySelectorAll(".card-preview");
-      if (containers.length > 0) {
-        // Берем только первый контейнер для теста
-        const firstContainer = containers[0];
 
-        const containerId = firstContainer.id;
-
-        mountSimpleCube(containerId);
-      }
+      containers.forEach((container) => {
+        const id = container.id;
+        // Например: "model-container-5"
+        const url = container.dataset.url; // Например: "/media/3d_assets/chair.glb"
+        // Если URL есть (файл существует) - запускаем viewer
+        if (url) {
+          loadModel(id, url);
+        }
+      });
       // Запускаем магию
     </script>
   </body>
