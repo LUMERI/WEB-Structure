@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
 export function loadModel(containerId, modelUrl) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -20,7 +21,10 @@ export function loadModel(containerId, modelUrl) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(window.devicePixelRatio); // Для четкости на Retina экранах
+
   renderer.outputColorSpace = THREE.SRGBColorSpace; // ВАЖНО для GLTF!
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
 
   container.innerHTML = "";
   container.appendChild(renderer.domElement);
@@ -35,16 +39,53 @@ export function loadModel(containerId, modelUrl) {
     new RoomEnvironment(renderer),
   ).texture;
   // 6. Загрузка
+  const loaderDiv = document.createElement("div");
+  loaderDiv.className = "loader-overlay";
+  loaderDiv.innerHTML = `
+        <div style="color: #666; font-size: 0.9rem;">Loading...</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    `;
+  container.appendChild(loaderDiv);
+  // Находим полоску, чтобы менять её ширину
+  const progressFill = loaderDiv.querySelector(".progress-fill");
+  // --- 2. Обновляем вызов загрузчика --
   const loader = new GLTFLoader();
   loader.load(
     modelUrl,
+
+    // A. ON LOAD (Успех)
     (gltf) => {
       const model = gltf.scene;
-      fitCameraToObject(camera, model, controls); // Передаем controls тоже!
+      fitCameraToObject(camera, model, controls);
       scene.add(model);
+
+      // Скрываем лоадер
+      loaderDiv.style.opacity = "0";
+      setTimeout(() => {
+        loaderDiv.remove(); // Удаляем из DOM через 0.3 сек
+      }, 300);
     },
-    undefined,
-    (err) => console.error(err),
+
+    // B. ON PROGRESS (Прогресс)
+    (xhr) => {
+      // xhr.total - общий вес файла в байтах
+      // xhr.loaded - сколько скачалось
+      if (xhr.total > 0) {
+        const percent = (xhr.loaded / xhr.total) * 100;
+        progressFill.style.width = percent + "%";
+      }
+    },
+
+    // C. ON ERROR (Ошибка)
+    (error) => {
+      console.error("Ошибка загрузки:", error);
+      loaderDiv.innerHTML = `<div class="error-msg">
+                              ❌Ошибка загрузки<br>
+                              <small>Проверьте файл</small>
+                            </div>`;
+    },
   );
   // 7. Loop
   function animate() {
